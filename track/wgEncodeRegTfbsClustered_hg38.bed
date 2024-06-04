@@ -1,0 +1,17 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML>
+<HEAD>
+<meta http-equiv='Content-Security-Policy' content="default-src *; script-src 'self' blob: 'unsafe-inline' 'nonce-PKOgorPLZtqiMEjRpOmR5U0aRSBC' code.jquery.com/jquery-1.9.1.min.js code.jquery.com/jquery-1.12.3.min.js code.jquery.com/ui/1.10.3/jquery-ui.min.js code.jquery.com/ui/1.11.0/jquery-ui.min.js code.jquery.com/ui/1.12.1/jquery-ui.js www.google-analytics.com/analytics.js www.googletagmanager.com/gtag/js www.samsarin.com/project/dagre-d3/latest/dagre-d3.js hm.baidu.com/hm.js cdnjs.cloudflare.com/ajax/libs/bowser/1.6.1/bowser.min.js cdnjs.cloudflare.com/ajax/libs/d3/3.4.4/d3.min.js cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js cdnjs.cloudflare.com/ajax/libs/jstree/3.3.4/jstree.min.js cdnjs.cloudflare.com/ajax/libs/jstree/3.3.7/jstree.min.js cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js login.persona.org/include.js ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.js maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js d3js.org/d3.v3.min.js cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js cdn.jsdelivr.net/npm/shepherd.js@11.0.1/dist/js/shepherd.min.js www.google.com/recaptcha/api.js; style-src * 'unsafe-inline'; font-src * data:; img-src * data:;">
+<TITLE>Very Early Error</TITLE>
+	<META http-equiv="Content-Script-Type" content="text/javascript">
+<STYLE TYPE="text/css">.hiddenText {background-color: silver}.normalText {background-color: white}</STYLE>
+</HEAD>
+
+<BODY CLASS="hgTables cgi">
+<center><div id='warnBox' style='display:none;'><CENTER><B id='warnHead'></B></CENTER><UL id='warnList'></UL><CENTER><button id='warnOK'></button></CENTER></div></center>
+<!-- HGERROR-START -->
+<P>Track wgEncodeRegTfbsClustered doesn't exist in database hg38.
+</P>
+<!-- HGERROR-END -->
+</BODY></HTML>
