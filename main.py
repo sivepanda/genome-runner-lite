@@ -42,7 +42,7 @@ chrom = "chr1"
 start = 60825584
 end = 222387434
 features_of_interest = ["wgEncodeRegDnaseClustered" ,  "tRNAs" , "knownAlt" , "cpgIslandExt"]
-bed_data = fetch_tracks(genome, features_of_interest, chrom, start, end)
+# bed_data = fetch_tracks(genome, features_of_interest, chrom, start, end)
 
 features_of_interest_bedtools = [] 
 for feature in features_of_interest: 
@@ -55,7 +55,9 @@ overlaps = []
 
 for feature in features_of_interest_bedtools:
     overlap = feature.intersect(reference)
-    print(len(reference))
+    for a in overlap:
+        print(a)
+        print(a.length)
     overlaps.append(sum(f.length for f in overlap) / len(reference))
 
 
