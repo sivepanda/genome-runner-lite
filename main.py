@@ -4,6 +4,9 @@ import os
 
 # API https://genome.ucsc.edu/goldenPath/help/api.html
 
+# TODO: Move functions into a local library and create runner file
+
+
 # Fetch a single track as a BED file from UCSC
 def fetch_bed_from_ucsc(genome, track, chrom, start, end, table="knownGene"):
     base_url = "http://genome.ucsc.edu/cgi-bin/hgTables"
@@ -42,34 +45,36 @@ def fetch_tracks(genome, features_of_interest, chrom, start, end, table="knownGe
 
 
 # Returns an array of bedtools objects for each of the features of interest. Pull data from UCSC if desired.
-def create_bedtools(features_of_interest, base, pull_new_data=False):
-    features_of_interest_bedtools = []
-    
+def create_bedtools(genomic_features, base, genomic_features_to_pull=[], pull_new_data=False):
+    genomic_features_bedtools = []
+
+    # TODO: Dynamically pull data if the bed file does not exist in ./track
     if pull_new_data == True:
-        features_of_interest_to_pull = ["wgEncodeRegDnaseClustered" ,  "tRNAs" , "knownAlt" , "cpgIslandExt"]
-        bed_data = fetch_tracks(genome, features_of_interest_to_pull, chrom, start, end)
+        if len(genomic_features_to_pull) == 0:
+            genomic_features_to_pull = genomic_features
+
+        bed_data = fetch_tracks(genome, genomic_features_to_pull, chrom, start, end)
 
     print("Creating BEDTools objects...")
-    for feature in features_of_interest: 
-        features_of_interest_bedtools.append(pybedtools.example_bedtool(os.path.join(os.getcwd(), base , feature + "_" + genome + ".bed"))) 
+    for feature in genomic_features: 
+        genomic_features_bedtools.append(pybedtools.example_bedtool(os.path.join(os.getcwd(), base , feature + "_" + genome + ".bed"))) 
     print("BEDTools created.")
 
-    return features_of_interest_bedtools
+    return genomic_features_bedtools
 
 # Calculate the ratio of overlaps between a reference and an array of features of interest
-def calculate_overlaps(reference, features_of_interest_bedtools, minimum_overlap):
+def calculate_overlaps(reference, genomic_features_bedtools, minimum_overlap):
+    overlaps = []
     print("Calculating overlaps...")
 
-    overlaps = []
-    overlaps_b = []
-    overlaps_c = []
-    for feature in features_of_interest_bedtools:
-        # Create shuffles to complete either chi-square or Monte Carlo significance tests
-        overlap = feature.intersect(reference, f=0.6)
-        overlaps_c.append(len(overlap) / len(feature))
-        overlaps_b.append(sum(f.length for f in (feature.intersect(reference, f=0.9, r=True))) / sum(f.length for f in feature))
+    for feature in genomic_features_bedtools:
+        # TODO: Create shuffles to complete either chi-square or Monte Carlo significance tests
+        
+        overlap = feature.intersect(reference, f = minimum_overlap, u=True)
         overlaps.append(sum(f.length for f in overlap) / sum(f.length for f in feature))
+
     print("Completed calulcation.\n\n\n")
+    return overlaps
 
 
 # Testing with human genome 38 and a few tracks of interest on chromosome 1 
@@ -77,17 +82,19 @@ genome = "hg38"
 chrom = "chr1"
 start = 60825584
 end = 222387434
-features_of_interest = ["wgEncodeRegDnaseClustered" ,  "tRNAs" , "knownAlt" , "cpgIslandExt" , "lincrna_tucp" , "introns_gencode"]
+genomic_features = ["wgEncodeRegDnaseClustered" ,  "tRNAs" , "knownAlt" , "cpgIslandExt" , "centromeres" , "lincrna_tucp"]
+genomic_features_to_pull = genomic_features[:-1]
+print(genomic_features_to_pull)
 base = "track"
-pull_new_data = False
+pull_new_data = True
+min_overlap = 1
 
-features_of_interest_bedtools = create_bedtools(features_of_interest, base, pull_new_data)
+features_of_interest_bedtools = create_bedtools(genomic_features, base, genomic_features_to_pull, pull_new_data)
 
-reference = pybedtools.example_bedtool(os.path.join(os.getcwd(), "track", "exons_gencode_hg38.bed"))
+reference = pybedtools.example_bedtool(os.path.join(os.getcwd(), base, "cpgIslandExt_hg38.bed"))
 
+overlaps = calculate_overlaps(reference, features_of_interest_bedtools, min_overlap)
 
+# overlaps
 
-
-print('r=False', overlaps)
-print('r=True', overlaps_b)
-print('r=True, from ref', overlaps_c)
+print(overlaps)
