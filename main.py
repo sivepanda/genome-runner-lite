@@ -1,4 +1,8 @@
 import requests
+import random
+import concurrent.futures
+import numpy as np
+from mpmath import mpf
 import pybedtools
 import os
 
@@ -62,19 +66,75 @@ def create_bedtools(genomic_features, base, genomic_features_to_pull=[], pull_ne
 
     return genomic_features_bedtools
 
+
+def progress_bar(amount, total, length=40):
+    fraction = amount/total
+
+    arrow = int(fraction * length - 1) * '-' + '>'
+    padding = int(length - len(arrow)) * ' '
+
+    ending = '\n' if amount == total else '\r'
+
+    print(f'Progress: [{arrow}{padding}] {int(fraction*100)}%', end=ending)
+
+
+def create_permutation(genome, reference, feature, minimum_overlap):
+    feature = feature.shuffle(genome=genome, chrom=True, seed=random.randint(1, 10000000))
+    return sum( f.length for f in  (feature.intersect(reference, f=minimum_overlap, u=True))  ) / sum( f.length for f in feature)
+
+# Complete permutations of a genome sequence to determine its p-val (posterior probability of alternate hypothesis)
+def permutation_p_vals(genome, reference, feature, minimum_overlap, num_permutations, prior_prob_null, prior_prob_alt):
+    observed_overlap = sum(f.length for f in (feature.intersect(reference, f=minimum_overlap, u=True))) / (sum(f.length for f in feature))
+    permuted_overlap_ratios = np.zeros(num_permutations)
+
+    max_workers = os.cpu_count()
+    print("This program uses multithreaded operation. This program is using", max_workers, "threads.")
+    
+    print("Creating permutations...")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(create_permutation, genome, reference, feature, minimum_overlap) for i in range(num_permutations)]
+        
+        permuted_overlap_ratios = [future.result() for future in concurrent.futures.as_completed(futures)]
+
+    permuted_overlap_ratios = [n*1.0000000000 for n in permuted_overlap_ratios]
+
+    print(permuted_overlap_ratios)
+    print(observed_overlap)
+    
+    permuted_overlap_ratios = np.array(permuted_overlap_ratios)
+    
+    
+    print("Calculating permutation statistics...")
+    permutation_dist_given_null = mpf(np.sum( permuted_overlap_ratios >= observed_overlap) / num_permutations)
+    permutation_dist_given_alt  = 1 - mpf(permutation_dist_given_null)
+    
+    print(permutation_dist_given_null, permutation_dist_given_alt)
+
+    baysean_factor = mpf(permutation_dist_given_alt) / mpf(permutation_dist_given_null)
+
+    prior_odds = mpf(prior_prob_alt) / mpf( prior_prob_null )
+
+    post_odds = mpf( baysean_factor ) * mpf( prior_odds )
+
+    # Return posterior probability of H1
+    return mpf( post_odds ) / mpf(post_odds + 1)
+
+
 # Calculate the ratio of overlaps between a reference and an array of features of interest
-def calculate_overlaps(reference, genomic_features_bedtools, minimum_overlap):
+def calculate_overlaps(genome, reference, genomic_features_bedtools, minimum_overlap):
     overlaps = []
+    
     print("Calculating overlaps...")
 
     for feature in genomic_features_bedtools:
-        # TODO: Create shuffles to complete either chi-square or Monte Carlo significance tests
-        
-        overlap = feature.intersect(reference, f = minimum_overlap, u=True)
-        overlaps.append(sum(f.length for f in overlap) / sum(f.length for f in feature))
+        overlaps.append(permutation_p_vals(genome, reference, feature, minimum_overlap, 1000, 0.5, 0.5))
+        # overlap = feature.intersect(reference, f = minimum_overlap, u=True)
+        #overlaps.append(sum(f.length for f in overlap) / sum(f.length for f in feature))
 
     print("Completed calulcation.\n\n\n")
     return overlaps
+
+
 
 
 # Testing with human genome 38 and a few tracks of interest on chromosome 1 
@@ -84,16 +144,15 @@ start = 60825584
 end = 222387434
 genomic_features = ["wgEncodeRegDnaseClustered" ,  "tRNAs" , "knownAlt" , "cpgIslandExt" , "centromeres" , "lincrna_tucp"]
 genomic_features_to_pull = genomic_features[:-1]
-print(genomic_features_to_pull)
 base = "track"
-pull_new_data = True
+pull_new_data = False 
 min_overlap = 1
 
 features_of_interest_bedtools = create_bedtools(genomic_features, base, genomic_features_to_pull, pull_new_data)
 
 reference = pybedtools.example_bedtool(os.path.join(os.getcwd(), base, "cpgIslandExt_hg38.bed"))
 
-overlaps = calculate_overlaps(reference, features_of_interest_bedtools, min_overlap)
+overlaps = calculate_overlaps(genome, reference, features_of_interest_bedtools, min_overlap)
 
 # overlaps
 
