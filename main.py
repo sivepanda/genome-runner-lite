@@ -5,6 +5,7 @@ import numpy as np
 from mpmath import mpf
 import pybedtools
 import os
+import threading
 
 # API https://genome.ucsc.edu/goldenPath/help/api.html
 
@@ -80,6 +81,7 @@ def progress_bar(amount, total, length=40):
 
 def create_permutation(genome, reference, feature, minimum_overlap):
     feature = feature.shuffle(genome=genome, chrom=True, seed=random.randint(1, 10000000))
+    print(f"Thread {threading.get_ident()} is processing a permutation")
     return sum( f.length for f in  (feature.intersect(reference, f=minimum_overlap, u=True))  ) / sum( f.length for f in feature)
 
 # Complete permutations of a genome sequence to determine its p-val (posterior probability of alternate hypothesis)
@@ -105,8 +107,8 @@ def permutation_p_vals(genome, reference, feature, minimum_overlap, num_permutat
     
     
     print("Calculating permutation statistics...")
-    permutation_dist_given_null = mpf(np.sum( permuted_overlap_ratios >= observed_overlap) / num_permutations)
-    permutation_dist_given_alt  = 1 - mpf(permutation_dist_given_null)
+    permutation_dist_given_alt = mpf(np.sum( permuted_overlap_ratios >= observed_overlap) / num_permutations)
+    permutation_dist_given_null  = 1 - mpf(permutation_dist_given_alt)
     
     print(permutation_dist_given_null, permutation_dist_given_alt)
 
@@ -127,9 +129,7 @@ def calculate_overlaps(genome, reference, genomic_features_bedtools, minimum_ove
     print("Calculating overlaps...")
 
     for feature in genomic_features_bedtools:
-        overlaps.append(permutation_p_vals(genome, reference, feature, minimum_overlap, 1000, 0.5, 0.5))
-        # overlap = feature.intersect(reference, f = minimum_overlap, u=True)
-        #overlaps.append(sum(f.length for f in overlap) / sum(f.length for f in feature))
+        overlaps.append(permutation_p_vals(genome, reference, feature, minimum_overlap, 5, 0.5, 0.5))
 
     print("Completed calulcation.\n\n\n")
     return overlaps
@@ -153,7 +153,5 @@ features_of_interest_bedtools = create_bedtools(genomic_features, base, genomic_
 reference = pybedtools.example_bedtool(os.path.join(os.getcwd(), base, "cpgIslandExt_hg38.bed"))
 
 overlaps = calculate_overlaps(genome, reference, features_of_interest_bedtools, min_overlap)
-
-# overlaps
 
 print(overlaps)
