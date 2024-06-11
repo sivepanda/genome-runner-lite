@@ -64,6 +64,7 @@ def create_bedtools(genomic_features, base, genomic_features_to_pull=[], pull_ne
 
 # Calculate the ratio of overlaps between a reference and an array of features of interest
 def calculate_overlaps(reference, genomic_features_bedtools, minimum_overlap):
+
     overlaps = []
     print("Calculating overlaps...")
 
