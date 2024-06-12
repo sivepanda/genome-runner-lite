@@ -20,9 +20,10 @@ def progress_bar(amount, total, length=40):
 
 
 def create_permutation(genome, reference, feature, minimum_overlap):
+    # return sum(f.length for f in (feature.intersect(reference, f=minimum_overlap, u=True))) / (sum(f.length for f in feature))
     feature = feature.shuffle(genome=genome, chrom=True, seed=random.randint(1, 10000000))
     print(f"Thread {threading.get_ident()} is processing a permutation")
-    return sum( f.length for f in  (feature.intersect(reference, f=minimum_overlap, u=True))  ) / sum( f.length for f in feature)
+    return sum( f.length for f in  (feature.intersect(reference, f=minimum_overlap, u=True))  ) / ( sum( f.length for f in feature) )
 
 # Complete permutations of a genome sequence to determine its p-val (posterior probability of alternate hypothesis)
 def permutation_p_vals(genome, reference, feature, minimum_overlap, num_permutations, prior_prob_null, prior_prob_alt):
@@ -47,7 +48,7 @@ def permutation_p_vals(genome, reference, feature, minimum_overlap, num_permutat
     
     
     print("Calculating permutation statistics...")
-
+    print(f'{ np.sum( permuted_overlap_ratios >= observed_overlap  ) } of the simulated situations are found to be located at the same location.')
     permutation_dist_given_null = mpf(np.sum( permuted_overlap_ratios >= observed_overlap ) / num_permutations ) 
     permutation_dist_given_alt = 1 - mpf( permutation_dist_given_null ) 
 
@@ -77,7 +78,7 @@ def calculate_overlaps(genome, reference, genomic_features_bedtools, minimum_ove
     print("Calculating overlaps...")
 
     for feature in genomic_features_bedtools:
-        overlaps.append(permutation_p_vals(genome, reference, feature, minimum_overlap, 5, 0.5, 0.5))
+        overlaps.append(permutation_p_vals(genome, reference, feature, minimum_overlap, 50, 0.5, 0.5))
 
     print("Completed calulcation.\n\n\n")
     return overlaps
@@ -88,17 +89,17 @@ def calculate_overlaps(genome, reference, genomic_features_bedtools, minimum_ove
 # Testing with human genome 38 and a few tracks of interest on chromosome 1 
 genome = "hg38"
 chrom = "chr1"
-start = 60825584
-end = 222387434
-genomic_features = ["wgEncodeRegDnaseClustered" ,  "tRNAs" , "knownAlt" , "cpgIslandExt" , "centromeres" ] 
-genomic_features_to_pull = genomic_features[:-1]
+start = 1 
+end = 248956421
+genomic_features = ["centromeres" , "cloneEndABC10" , "cloneEndABC11" , "cloneEndABC12" , "cloneEndABC13" , "cloneEndABC14" , "cloneEndABC16" , "cloneEndABC18" , "cloneEndABC20" , "cloneEndABC21" , "cloneEndABC22" , "cloneEndABC23" , "cloneEndABC24" , "cloneEndABC27" , "cloneEndABC7" , "cloneEndABC9" , "cloneEndbadEnds" , "cloneEndCH17" , "cloneEndCOR02" , "cloneEndCOR2A" , "cloneEndCTD" , "cloneEndmultipleMaps" , "cloneEndRP11" , "cloneEndWI2" , "coriellDelDup" , "cpgIslandExt" , "cpgIslandExtUnmasked" , "cytoBand" , "cytoBandIdeo" , "dgvMerged" , "fishClones" , "gap" , "geneReviews" , "genomicSuperDups" , "gold" , "gtexGene" , "gtexGeneV8" , "gwasCatalog" , "hg38ContigDiff" , "hgIkmc" , "iscaBenignGainCum" , "iscaBenignLossCum" , "iscaPathGainCum" , "iscaPathLossCum" , "knownAlt" , "lincRNAsCTAdipose" , "lincRNAsCTAdrenal" , "lincRNAsCTBrain" , "lincRNAsCTBrain_R" , "lincRNAsCTBreast" , "lincRNAsCTColon" , "lincRNAsCTForeskin_R" , "lincRNAsCTHeart" , "lincRNAsCThLF_r1" , "lincRNAsCThLF_r2" , "lincRNAsCTKidney" , "lincRNAsCTLiver" , "lincRNAsCTLung" , "lincRNAsCTLymphNode" , "lincRNAsCTOvary" , "lincRNAsCTPlacenta_R" , "lincRNAsCTProstate" , "lincRNAsCTSkeletalMuscle" , "lincRNAsCTTestes" , "lincRNAsCTTestes_R" , "lincRNAsCTThyroid" , "lincRNAsCTWhiteBloodCell" , "microsat" , "nestedRepeats" , "scaffolds" , "snp141Flagged" , "snp141Mult" , "snp142Flagged" , "snp142Mult" , "snp144Flagged" , "snp144Mult" , "snp146Flagged" , "snp146Mult" , "snp147Flagged" , "snp147Mult" , "snp150Flagged" , "snp150Mult" , "snp151Flagged" , "snp151Mult" , "snpediaText" , "stsMap" , "tRNAs" , "ucscGenePfam" , "ucscToINSDC" , "ucscToRefSeq" , "wgRna"] 
+# genomic_features_to_pull = genomic_features[:-1]
 base = "track"
-pull_new_data = False 
+pull_new_data = False
 min_overlap = 1
 
-features_of_interest_bedtools = create_bedtools(genomic_features, base, genome, genomic_features_to_pull, pull_new_data)
+features_of_interest_bedtools = create_bedtools(genomic_features, base, genome, chrom, start, end )
 
-reference = pybedtools.example_bedtool(os.path.join(os.getcwd(), base, "cpgIslandExt_hg38.bed"))
+reference = pybedtools.example_bedtool(os.path.join(os.getcwd(), base, "hg38_lincRNAsCTColon.bed"))
 
 overlaps = calculate_overlaps(genome, reference, features_of_interest_bedtools, min_overlap)
 

@@ -45,7 +45,7 @@ def fetch_tracks(genome, features_of_interest, chrom, start, end, table="knownGe
 
 
 # Returns an array of bedtools objects for each of the features of interest. Pull data from UCSC if desired.
-def create_bedtools(genomic_features, base, genome='hg38', genomic_features_to_pull=[], pull_new_data=False):
+def create_bedtools(genomic_features, base, genome, chrom, start, end, genomic_features_to_pull=[], pull_new_data=False):
     genomic_features_bedtools = []
 
     # TODO: Dynamically pull data if the bed file does not exist in ./track
@@ -57,7 +57,7 @@ def create_bedtools(genomic_features, base, genome='hg38', genomic_features_to_p
 
     print("Creating BEDTools objects...")
     for feature in genomic_features: 
-        genomic_features_bedtools.append(pybedtools.example_bedtool(os.path.join(os.getcwd(), base , feature + "_" + genome + ".bed"))) 
+        genomic_features_bedtools.append(pybedtools.example_bedtool(os.path.join(os.getcwd(), base , genome + "_" + feature + ".bed"))) 
     print("BEDTools created.")
 
     return genomic_features_bedtools
