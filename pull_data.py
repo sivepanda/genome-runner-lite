@@ -3,10 +3,6 @@ import pybedtools
 import os
 
 
-# API https://genome.ucsc.edu/goldenPath/help/api.html
-
-# TODO: Move functions into a local library and create runner file
-
 # Fetch a single track as a BED file from UCSC
 def fetch_bed_from_ucsc(genome, track, chrom, start, end, table="knownGene"):
     base_url = "http://genome.ucsc.edu/cgi-bin/hgTables"
@@ -44,9 +40,9 @@ def fetch_tracks(genome, features_of_interest, chrom, start, end, table="knownGe
     print("Completed pulling data.")
 
 
-# Returns an array of bedtools objects for each of the features of interest. Pull data from UCSC if desired.
+# Returns an hashmap of bedtools objects for each of the inputted features. Pull data from UCSC if desired.
 def create_bedtools(genomic_features, base, genome, chrom, start, end, genomic_features_to_pull=[], pull_new_data=False):
-    genomic_features_bedtools = []
+    genomic_features_bedtools = {}
 
     # TODO: Dynamically pull data if the bed file does not exist in ./track
     if pull_new_data == True:
@@ -57,7 +53,8 @@ def create_bedtools(genomic_features, base, genome, chrom, start, end, genomic_f
 
     print("Creating BEDTools objects...")
     for feature in genomic_features: 
-        genomic_features_bedtools.append(pybedtools.example_bedtool(os.path.join(os.getcwd(), base , genome + "_" + feature + ".bed"))) 
+        genomic_features_bedtools[feature] = pybedtools.example_bedtool(os.path.join(os.getcwd(), base , genome + "_" + feature + ".bed"))
+        # genomic_features_bedtools.append(pybedtools.example_bedtool(os.path.join(os.getcwd(), base , genome + "_" + feature + ".bed"))) 
     print("BEDTools created.")
 
     return genomic_features_bedtools
